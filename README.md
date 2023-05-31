@@ -146,11 +146,11 @@ The anomaly model is dedicated to representing anomalies found by the data-qa mo
     },
     "dateCreated": {
         "type": "Property",
-        "value": {"type": "DateTime", "value": "date"()},
+        "value": {"type": "DateTime", "value": "date"},
     },
     "dateIssued": {
         "type": "Property",
-        "value": {"type": "DateTime", "value": "date"()},
+        "value": {"type": "DateTime", "value": "date"},
     },
     "@context": [
         "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld"                
