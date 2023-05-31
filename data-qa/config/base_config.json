@@ -1,0 +1,18 @@
+{
+    "rtm_platform_public_url": "",
+    "rtm_platform_services_urls": {
+        "quantumleap": "",
+        "historical": "",
+        "broker": "",
+        "secure": ""
+    },
+    "external": true,
+    "callback_url": "-",
+    "flask_debug": true,
+    "rtm_platform_url":"",
+	"quantumleap_api_base":"",
+	"app_id":"",
+	"app_secret":"",
+	"iot_user":"",
+	"iot_pwd":""
+}

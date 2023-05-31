@@ -1,0 +1,8 @@
+flask==2.0.3
+flask_apscheduler==1.12.4
+numpy
+setuptools==65.1.0
+hampel==0.0.5
+pandas
+requests
+math

@@ -1,0 +1,20 @@
+{"analysis" : 
+    [
+        {
+            "algorithm" : "hampel_filter", 
+            "subscription_id" : "urn:ngsi-ld:Subscription:hampel_anomaly_detection_1",
+            "entityType" : "MeasurementStation",
+            "analyzedProperties" : ["temperature", "depth"],
+            "anomalyTypeId" : "_anomaly_hampel_filter",
+            "notCorrectedProperties" : ["location"]
+        },
+        {
+            "algorithm" : "z_score", 
+            "subscription_id" : "urn:ngsi-ld:Subscription:z_score_detection_1",
+            "entityType" : "MeasurementStation",
+            "analyzedProperties" : ["conductivity"],
+            "anomalyTypeId" : "_anomaly_z_score",
+            "notCorrectedProperties" : ["location"]
+        }
+    ]
+}

@@ -1,0 +1,11 @@
+{
+    "query_points": 2000,
+    "z_score_threshold": 4,
+    "hampel_sliding_window" : [10, 200, 500, 1000],
+    "data_cadency_anomaly_threshold" : 1440,
+    "property_sliding_window" : {
+        "temperature" : 192,
+        "depth" : 180,
+        "conductivity" : 180
+    }
+}
