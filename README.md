@@ -74,7 +74,7 @@ The data-qa module is prepared to work with the following data models:
 
 ### Output data model
 
-Schema of the response given by the data-qa module.
+Response's schema given by the data-qa module.
 
 ```json
 {
