@@ -1,8 +1,8 @@
-flask==2.0.3
+flask==2.3.3
 flask_apscheduler==1.12.4
+pandas==2.1.2
 numpy
 setuptools==65.1.0
 hampel==0.0.5
-pandas
 requests
-math
+loguru==0.5.3

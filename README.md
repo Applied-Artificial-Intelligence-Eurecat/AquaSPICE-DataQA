@@ -163,6 +163,17 @@ The anomaly model is dedicated to representing anomalies found by the data-qa mo
 
 General behaviour of the data-qa module is as follows:
 
+Each data samples goes through a defined set of outlier detection algorithms when they are ingested by the DataQA Module. More specifically, the data can pass through one of two different approaches that are defined: 
+ 
+- Approach #1 (Z-score method): Z-score is a statistical score method that evaluates a data point based on the standard deviation of what it is being observed against, in our case, a sample in a time-series is being compared to the standard value of values of this time series, in a pre-defined window of time. The z-score is then obtained by subtracting the time series mean from the individual sample score and then dividing the difference by the time series standard deviation, if the obtained value falls above 3 or below 0 in our case, it is considered an outlier. Moreover, this method is double-checked by the IQR threshold algorithm, which is also an statistical technique but based on the interquartile range, which measures the spread of the middle (approximately) of the dataset. Additionally, the IQR method is a robust technique when dealing with extreme values, which can improve the overall performance of the outlier detection. 
+ 
+- Approach #2 (Hampel Filter): Hampel filter is a method used for identifying and handling outliers, which is particularly useful for time series data. It works by comparing each point of the series to the median of its nearby values (or neighbors) within a pre-defined window, and it is also robust to extreme values and resistant with non-normal distributions. Its parameters can be tuned by setting a window size and an n_sigma (Pearson's rule) which controls the tolerance of the algorithm. In this case, the Hampel Filter contains a weakness which is caused by the fact that it relies on the neighbors of the data point, which is that it doesn't work very well with the end of time series that may cause false positives while analyzing the data points. Because of that, this algorithm also uses the IQR method as a failsafe method to correctly label outlier values. 
+ 
+- Approach #3 (WaterCPS method): This method is based on some thresholds defined in the Aquaspice project for the case study #3.1. There are three kinds of thresholds that help indicates if a sensor is providing successive abnormal values, which are the maximum, minimum and difference values based on a 1-hour period. Details are explained below. 
+
+Finally, if a sample is labeled as an outlier, its value is then replaced by the moving average value of the series by the DataQA.
+
+In short, this is the behaviour of the DataQA module:
 - In-data memory objects are updated depending on the algorithm chosen (once), by querying historical data for each entity when a new entity sample is received.
 
 - During the process reading, only the supplied entities and properties will be analyzed (as indicated in the data_qa_config file), after each data sample is analyzed, they are included in the in-memory objects.
@@ -177,21 +188,32 @@ General behaviour of the data-qa module is as follows:
 
 - File context_broker_client_utils.py: Contains auxiliar functions related to the communication with the context broker.
 
+- hampel_functions: Contains functions related to the Hampel filter outlier detection method.
+
+- z_score_functions: Contains functions related to the Z-score outliers functions.
+
+- watercps_functions: Contains functions related to the WaterCPS error flagging thresholds.
+
+- auxiliar_functions: Contains additional functions used by the whole process.
+
 ## Configuration parameters explanation
 
 - File config/data_qa_params.json is responsible for setting parameters of the dataQA algorithms.
 
-| Parameter| Explanation | Default value |
-|---|---|---|
-| query_points  | Define the number of samples to query the context broker to build the historic dataset.  | 4000  |
-| data_cadency_anomaly_threshold  | Parameter which controls the distance required to trigger the data cadency anomaly detection (minutes).  | 1440   |
-| z_score_threshold  | Pearson's rule threshold used for Z-score.  | 4  |
-| hampel_filter_threshold  | Pearson's rule threshold used for Hampel filter module.  | 5 |
-| property_sliding_window  | Indicates the size of the sliding window used for Hampel filter, the values are defined for each type of {{Property}}.  | 192, 180, 180  |
+| Parameter                      | Explanation                                                                                                            | Default value                    |
+|--------------------------------|------------------------------------------------------------------------------------------------------------------------|----------------------------------|
+| query_points                   | Define the number of samples to query the context broker to build the historic dataset.                                | 4000                             |
+| data_cadency_anomaly_threshold | Parameter which controls the distance required to trigger the data cadency anomaly detection (minutes).                | 1440                             |
+| z_score_threshold              | Pearson's rule threshold used for Z-score.                                                                             | 4                                |
+| hampel_filter_threshold        | Pearson's rule threshold used for Hampel filter module.                                                                | 5                                |
+| property_sliding_window        | Indicates the size of the sliding window used for Hampel filter, the values are defined for each type of {{Property}}. | 192, 180, 180                    |
+| iqr_threshold                  | Indicates the threshold used by the IQR method (failsafe)                                                              | 2, 1.8                           |
+| watercps_error_flagging        | Contains the values used as thresholds for maximum, minimum and delta value                                            | Varies per variable and use case |
+
 
 - File config/data_qa_config.json creates subscriptions that defines the analysis to be executed. Defines {{entityType}} to be included in the analysis and as well  {{Property}} as {{analyzedProperties}}, also defines the corresponding {{algorithm}} to be used.
 
-- File config/base_config.json includes parameters of the context broker.
+- File config/base_config.json includes parameters (such as URL's) of the context broker.
 
 ## Usage
 
@@ -203,6 +225,8 @@ python -u ./src/streaming_analysis.py "config/base_config.json;config/data_qa_pa
 
 Required libraries are listed under requirements.txt file.
 
+# Algorithms and outlier detection methods
+
 ## Z-score outlier detection
 
 Z-Score outlier detection method is implemented. Pearson parameter = 4.
@@ -212,10 +236,17 @@ Z-Score outlier detection method is implemented. Pearson parameter = 4.
 
 Hampel Filter outlier detection implemented. Specific variables have different sliding windows, pearson parameter = 4.
 
-## Future releases
+## IQR Method.
 
-Future releases will include additional anomaly detection algorithms and improvements on the existing ones.
+The statistical method is implemented as an failsafe The default values are 1.8 or 2 depending on the case.
 
+## WaterCPS thresholds for error flagging
+
+The aim of these thresholds is to act as an indicative to detect the need of maintenance of the sensors defined for the Case study #3.1. Basically, it relies on 3 different thresholds defined for each variable:
+
+- Minimum criterion: Minimum value for average of measurements within 1 hour.
+- Maximum criterion: Maximum value for average of measurements within 1 hour.
+- Jump criterion: Difference between 2 successive measurements (within 1 hour of interval)/
 
 # Contributors
 

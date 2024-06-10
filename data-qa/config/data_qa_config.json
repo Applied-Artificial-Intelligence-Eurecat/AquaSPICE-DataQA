@@ -2,7 +2,7 @@
     [
         {
             "algorithm" : "hampel_filter", 
-            "subscription_id" : "urn:ngsi-ld:Subscription:hampel_anomaly_detection_1",
+            "subscription_id" : "urn:ngsi-ld:Subscription:{subscription_name}}",
             "entityType" : "MeasurementStation",
             "analyzedProperties" : ["temperature", "depth"],
             "anomalyTypeId" : "_anomaly_hampel_filter",
@@ -10,10 +10,18 @@
         },
         {
             "algorithm" : "z_score", 
-            "subscription_id" : "urn:ngsi-ld:Subscription:z_score_detection_1",
+            "subscription_id" : "urn:ngsi-ld:Subscription:{subscription_name}",
             "entityType" : "MeasurementStation",
             "analyzedProperties" : ["conductivity"],
             "anomalyTypeId" : "_anomaly_z_score",
+            "notCorrectedProperties" : ["location"]
+        },
+        {
+            "algorithm" : "watercps_threshold",
+                "subscription_id" : "urn:ngsi-ld:Subscription:{subscription_name}",
+            "entityType" : "MeasurementStation",
+            "analyzedProperties" : ["temperature", "depth", "conductivity"],
+            "anomalyTypeId" : "_anomaly_watercps",
             "notCorrectedProperties" : ["location"]
         }
     ]

@@ -1,11 +1,36 @@
 {
-    "query_points": 2000,
-    "z_score_threshold": 4,
-    "hampel_sliding_window" : [10, 200, 500, 1000],
+    "query_points": 4000,
     "data_cadency_anomaly_threshold" : 1440,
+    "z_score_threshold": 4,
+    "hampel_filter_threshold" : 5,
+    "iqr_threshold" : {
+        "default" : 2, 
+        "failsafe" : 1.8},
     "property_sliding_window" : {
         "temperature" : 192,
         "depth" : 180,
         "conductivity" : 180
+    },
+    "watercps_error_flagging" : {
+        "harbour_docks" : {
+            "temperature" : {
+                "min_value" : 2,
+                "max_value" : 35,
+                "delta_value" : 5
+
+            },
+            "conductivity" : {
+                "min_value" : 300,
+                "max_value" : 30000,
+                "delta_value" : 5000
+
+            },
+            "depth" : {
+                "min_value" : 100,
+                "max_value" : 3000,
+                "delta_value" : 500
+
+            }
+        }
     }
 }
