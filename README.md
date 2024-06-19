@@ -6,7 +6,13 @@ The aim of AquaSPICE (Advancing Sustainability of Process Industries through Dig
 
 The RTM platform focuses on real-time monitoring and operational modelling. It is integrated within the AquaSPICE ecosystem and it is based on the [FIWARE initiative](https://www.fiware.org/).
 
+## DataQA
+
 To guarantee that data ingested by the RTM platform is valid and can be confidently used by end users through dashboards, as well as by intelligent services to reason over it, the context broker [Orion](https://github.com/FIWARE/context.Orion-LD) has in its core the Data Quality Assurance module (DataQA). This module evaluates the input data (coming from on-site sensors) in real time and produces transformed time series with quality metrics associated to the original readings (e.g., flag invalid readings). This evaluation is implemented using a bag of algorithms and techniques offered by the DataQA module including feature engineering and outliers’ detection and correction.
+
+The DataQA module analyzes input sample data for multiple entities as needed for the Case Study. 
+During RTM deployment, a configuration file specifies each analysis process (as specified below), including its ID, algorithms to be used alongside with its hyperparameters, and target entities and properties. 
+The data structure is also detailed in details below. This configuration makes the DataQA module generalizable and flexible to accept and work with different ```<<entityType>>``` and ```<<Property>>```.
 
 ## Fiware
 
@@ -20,17 +26,19 @@ A Context Broker component is the core and mandatory component of any “Powered
 
 ## Data models
 
-The data-qa module is prepared to work with the following data models:
+The DataQA module is prepared to work with the following data models.
 
 ### Input data model
+
+The input model is received through the subscription created on the Context Broker, as long as it matches the defined ```<<entityType>>``` and ```<<properties>>``` used while creating the subscription.
 
 ```json
 {
     "$schema": "http://json-schema.org/schema#",
     "$schemaVersion": "0.0.1",
-    "$id": "url:schema:{{entityType}}",
-    "title": "AquaSpice Models - {{entityType}} Schema",
-    "description": "{{entityType}} information definition",
+    "$id": "url:<<schema>>:<<entityType>>",
+    "title": "AquaSpice Models - <<entityType>> Schema",
+    "description": "<<entityType>> information definition",
     "type": "object",
     "allOf": [
         {
@@ -38,35 +46,20 @@ The data-qa module is prepared to work with the following data models:
                 "type": {
                     "type": "string",
                     "enum": [
-                        "{{entityType}}"
+                        "<<entityType>>"
                     ],
                     "description": "Property. NGSI Entity type"
                 },
-                "temperature": {
+                "<<propertyName>>": {
                     "type": "Number",
-                    "description": "Property, Temperature of the water, Model:'https://schema.org/Number'"
-                },
-                "depth": {
-                    "type": "Number",
-                    "$ref": "https://smart-data-models.github.io/data-models/terms.jsonld#/definitions/depth"
-                },
-                "location": {
-                    "$ref": "https://smart-data-models.github.io/data-models/common-schema.json#/definitions/Location-Commons/properties/location"
-                },
-                "conductivity": {
-                    "type": "Number",
-                    "$ref": "https://smart-data-models.github.io/data-models/terms.jsonld#/definitions/conductivity"
-                }
+                    "description": "Property, Model:'https://schema.org/Number'"
             }
         }
     ],
     "required": [
         "type",
         "id",
-        "temperature",
-        "depth",
-        "location",
-        "conductivity"
+        "<<propertyName>>"
     ]
 }
 
@@ -74,64 +67,41 @@ The data-qa module is prepared to work with the following data models:
 
 ### Output data model
 
-Response's schema given by the data-qa module.
-
+For each message received by the DataQA module, the module will run the analyses defined in the configuration file and flag the value as correct or an outlier. 
+As a response, a new JSON-LD message will then be sent back to the **RTM platform context broker**. 
+This message will have an ```"id"``` of ```"urn:ngsi-ld:AquaSpice:<<EntityType>>Corrected:<<EntityId>>"``` and a type of ```"<<EntityType>>Corrected"```, where ```"<<EntityType>>"``` is defined in the configuration file and ```"<<EntityId>>"``` is extracted from the original message. 
+The outgoing message will include all ```"notCorrectedProperties"``` from the original message and, for each of the variables in the ```"analyzedProperty"``` list, it will include the raw and corrected values. If the value is flagged as anomalous, the corrected value will be the moving average; otherwise, it will be the same as the raw value.
+This way, the response given by the Data-QA can be ingested by the Context-Broker and due to it being generic and parameter-based it can be applied to any case of study.
 ```json
 {
-    "$schema": "http://json-schema.org/schema#",
-    "$schemaVersion": "0.0.1",
-    "$id": "url:schema:{{entityType}}Corrected",
-    "title": "AquaSpice Models - {{entityType}}Corrected Schema",
-    "description": "{{entityType}}Corrected information definition",
-    "type": "object",
-    "allOf": [
-        {
-            "properties": {
-                "type": {
-                    "type": "string",
-                    "enum": [
-                        "{{entityType}}"
-                    ],
-                    "description": "Property. NGSI Entity type"
-                },
-                "temperatureRaw": {
-                    "type": "Number",
-                    "description": "Property, Temperature of the water, Model:'https://schema.org/Number'"
-                },
-                "temperatureCorrected": {
-                    "type": "Number"
-                },
-                "depthRaw": {
-                    "type": "Number",
-                    "$ref": "https://smart-data-models.github.io/data-models/terms.jsonld#/definitions/depth"
-                },
-                "depthCorrected": {
-                    "type": "Number"
-                },
-                "conductivityRaw": {
-                    "type": "Number",
-                    "$ref": "https://smart-data-models.github.io/data-models/terms.jsonld#/definitions/conductivity"
-                },
-                "conductivityCorrected": {
-                    "type": "Number"
-                }
-
-            }
-        }
-    ]
+  "id": "urn:ngsi-ld:AquaSpice:" + "<<entityType>>" + "<<flag>>" + ":" + id,
+  "type":  ``` + "<<flag>>"
+  "<<PropertyName>>Raw":{
+    "type": "Property", 
+    "value": The original value, 
+    "observedAt": Original observation time
+   },
+  "<<PropertyName>>Corrected":{
+     "type": "Property", 
+     "value": The corrected value, 
+     "observedAt": Original observation time
+   },
 }
 ```
 
+The parameter ```<<flag>>``` can be ```Corrected``` if the data sample was treated by the one of the outlier detection algorithms, or ```Flagged``` if it was validated through the WaterCPS water quality thresholds.
+
+
 ### Anomaly data model
 
-The anomaly model is dedicated to representing anomalies found by the data-qa module while analyzing the received data samples in case of abnormal values.
+The anomaly model is dedicated to representing anomalies found by the DataQA module while analyzing the received data samples in case of abnormal values.
 
 ```json
 {
-    "id": "urn:ngsi-ld:{{entityType}}Corrected",
+    "id": "urn:ngsi-ld:" + <<entityType>> + "Corrected",
     "type": "Anomaly",
     "name": "value-anomaly",
-    "description": "Anomaly for subject: {{subject}}",
+    "description": "Anomaly for subject: `<<subject>>`",
     "dateObserved": {
         "type": "Property",
         "value": {"@type": "DateTime", "@value": "date"},
@@ -180,6 +150,8 @@ In short, this is the behaviour of the DataQA module:
 
 - Samples are analyzed using the techniques defined in the data_qa_config file, and then if a sample is flagged as an outlier, it will generate an Anomaly but also replies with a corrected value.
 
+Furthermore, the module has been developed in such a way that it can easily accommodate new algorithms. 
+
 ## Files explanation
 
 - Folder config/: Includes configurations regarding the context broker address, and data_qa parameters for each of the algorithms, such as sliding window, query points, etc.
@@ -211,21 +183,52 @@ In short, this is the behaviour of the DataQA module:
 | watercps_error_flagging        | Contains the values used as thresholds for maximum, minimum and delta value                                            | Varies per variable and use case |
 
 
-- File config/data_qa_config.json creates subscriptions that defines the analysis to be executed. Defines {{entityType}} to be included in the analysis and as well  {{Property}} as {{analyzedProperties}}, also defines the corresponding {{algorithm}} to be used.
+- File config/data_qa_config.json creates subscriptions that defines the analysis to be executed. It Defines ```<<entityType>>``` to be included in the analysis and as well  ```<<Property>>``` as ```<<analyzedProperties>>```, also defines the corresponding ```<<algorithm>>``` to be used. An example can be seen below.
+```json
+{"analysis" : 
+    [
+        {
+            "algorithm" : "hampel_filter", 
+            "subscription_id" : "urn:ngsi-ld:Subscription:{subscription_name}}",
+            "entityType" : "MeasurementStation",
+            "analyzedProperties" : ["temperature", "depth"],
+            "anomalyTypeId" : "_anomaly_hampel_filter",
+            "notCorrectedProperties" : ["location"]
+        },
+        {
+            "algorithm" : "z_score", 
+            "subscription_id" : "urn:ngsi-ld:Subscription:{subscription_name}",
+            "entityType" : "MeasurementStation",
+            "analyzedProperties" : ["conductivity"],
+            "anomalyTypeId" : "_anomaly_z_score",
+            "notCorrectedProperties" : ["location"]
+        },
+        {
+            "algorithm" : "watercps_threshold",
+                "subscription_id" : "urn:ngsi-ld:Subscription:{subscription_name}",
+            "entityType" : "MeasurementStation",
+            "analyzedProperties" : ["temperature", "depth", "conductivity"],
+            "anomalyTypeId" : "_anomaly_watercps",
+            "notCorrectedProperties" : ["location"]
+        }
+    ]
+}
+```
 
 - File config/base_config.json includes parameters (such as URL's) of the context broker.
 
 ## Usage
 
+
 ```
-python -u ./src/streaming_analysis.py "config/base_config.json;config/data_qa_params.json;config/data_qa_config.json"
+docker build -t data_q_module .
 ```
 
 # Dependencies
 
 Required libraries are listed under requirements.txt file.
 
-# Algorithms and outlier detection methods
+# Implemented algorithms and outlier detection methods
 
 ## Z-score outlier detection
 
