@@ -43,17 +43,18 @@ The input model is received through the subscription created on the Context Brok
     "allOf": [
         {
             "properties": {
-                "type": {
-                    "type": "string",
-                    "enum": [
-                        "<<entityType>>"
-                    ],
-                    "description": "Property. NGSI Entity type"
-                },
-                "<<propertyName>>": {
-                    "type": "Number",
-                    "description": "Property, Model:'https://schema.org/Number'"
-            }
+              "type": {
+                "type": "string",
+                "enum": [
+                  "<<entityType>>"
+                ],
+                "description": "Property. NGSI Entity type"
+              },
+              "<<propertyName>>": {
+                "type": "Number",
+                "description": "Property, Model:'https://schema.org/Number'"
+              }
+            }  
         }
     ],
     "required": [
@@ -74,18 +75,18 @@ The outgoing message will include all ```"notCorrectedProperties"``` from the or
 This way, the response given by the Data-QA can be ingested by the Context-Broker and due to it being generic and parameter-based it can be applied to any case of study.
 ```json
 {
-  "id": "urn:ngsi-ld:AquaSpice:" + "<<entityType>>" + "<<flag>>" + ":" + id,
-  "type":  ``` + "<<flag>>"
+  "id": "urn:ngsi-ld:AquaSpice:<<entityType>><<flag>>:<<id>>",
+  "type":  "<<entityType>><<flag>>",
   "<<PropertyName>>Raw":{
     "type": "Property", 
-    "value": The original value, 
-    "observedAt": Original observation time
+    "value": "The original value", 
+    "observedAt": "Original observation time"
    },
   "<<PropertyName>>Corrected":{
      "type": "Property", 
-     "value": The corrected value, 
-     "observedAt": Original observation time
-   },
+     "value": "The corrected value", 
+     "observedAt": "Original observation time"
+   }
 }
 ```
 
@@ -98,29 +99,29 @@ The anomaly model is dedicated to representing anomalies found by the DataQA mod
 
 ```json
 {
-    "id": "urn:ngsi-ld:" + <<entityType>> + "Corrected",
+    "id": "urn:ngsi-ld:<<entityType>>Corrected",
     "type": "Anomaly",
     "name": "value-anomaly",
     "description": "Anomaly for subject: `<<subject>>`",
     "dateObserved": {
         "type": "Property",
-        "value": {"@type": "DateTime", "@value": "date"},
+        "value": {"@type": "DateTime", "@value": "date"}
     },
     "validFrom": {
         "type": "Property",
-        "value": {"@type": "DateTime", "@value": "date"},
+        "value": {"@type": "DateTime", "@value": "date"}
     },
     "validTo": {
         "type": "Property",
-        "value": {"@type": "DateTime", "@value": "date"},
+        "value": {"@type": "DateTime", "@value": "date"}
     },
     "dateCreated": {
         "type": "Property",
-        "value": {"type": "DateTime", "value": "date"},
+        "value": {"type": "DateTime", "value": "date"}
     },
     "dateIssued": {
         "type": "Property",
-        "value": {"type": "DateTime", "value": "date"},
+        "value": {"type": "DateTime", "value": "date"}
     },
     "@context": [
         "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld"                
