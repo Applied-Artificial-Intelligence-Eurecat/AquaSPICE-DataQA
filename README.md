@@ -70,8 +70,8 @@ The input model is received through the subscription created on the Context Brok
 
 For each message received by the DataQA module, the module will run the analyses defined in the configuration file and flag the value as correct or an outlier. 
 As a response, a new JSON-LD message will then be sent back to the **RTM platform context broker**. 
-This message will have an ```"id"``` of ```"urn:ngsi-ld:AquaSpice:<<EntityType>>Corrected:<<EntityId>>"``` and a type of ```"<<EntityType>>Corrected"```, where ```"<<EntityType>>"``` is defined in the configuration file and ```"<<EntityId>>"``` is extracted from the original message. 
-The outgoing message will include all ```"notCorrectedProperties"``` from the original message and, for each of the variables in the ```"analyzedProperty"``` list, it will include the raw and corrected values. If the value is flagged as anomalous, the corrected value will be the moving average; otherwise, it will be the same as the raw value.
+This message will have an ```id``` of ```urn:ngsi-ld:AquaSpice:<<EntityType>>Corrected:<<EntityId>>``` and a type of ```<<EntityType>>Corrected```, where ```<<EntityType>>``` is defined in the configuration file and ```<<EntityId>>``` is extracted from the original message. 
+The outgoing message will include all ```<<notCorrectedProperties>>``` from the original message and, for each of the variables in the ```<<analyzedProperty>>``` list, it will include the raw and corrected values. If the value is flagged as anomalous, the corrected value will be the moving average; otherwise, it will be the same as the raw value.
 This way, the response given by the Data-QA can be ingested by the Context-Broker and due to it being generic and parameter-based it can be applied to any case of study.
 ```json
 {
